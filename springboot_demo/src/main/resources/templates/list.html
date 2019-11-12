@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+
+    <!-- jqeuy默认的css样式 -->
+    <link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css">
+
+    <link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css">
+
+    <!-- 这是jquery的核心包  -->
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <!-- 这是easyui的核心包  -->
+    <script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/locale/easyui-lang-zh_CN.js"></script>
+</head>
+<body>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',title:'角色列表',width:500">
+        <!-- 定义角色表格 -->
+        <form id="dg"></form>
+    </div>
+
+
+
+
+
+    <div data-options="region:'center',title:'权限列表'">
+        <div class="easyui-panel" data-options="footer:'#footer',fit:true">
+            <input id="roleid" style="display: none">
+            <ul id="powerTree"></ul>
+
+        </div>
+        <div id="footer" style="text-align:right">
+            <a href="javascript:saveRolePower()" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true">保存</a>
+        </div>
+
+
+
+
+
+
+
+
+
+    </div>
+
+
+
+
+
+    <div data-options="region:'east',title:'权限详细列表',width:430">
+
+        <table id="menuTable"></table>
+        <div id="menuDialog" class="easyui-dialog" data-options="title:'新增权限详细',closed:true,width:300,height:200,modal:true,buttons:'#menuButtons'">
+            <form id="menuForm" method="post">
+                <!-- 放权限id -->
+                <input name="id" style="display: none">
+                <input id="powerId" name="powerid" type="hidden"><br>
+                描述：<input class="easyui-textbox" name="name"><br>
+                URL:<input class="easyui-textbox" name="url">
+            </form>
+        </div>
+        <!-- 定义对话框的按钮 -->
+        <div id="menuButtons">
+            <a href="javascript:saveMenu()" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true">确定</a>
+            <a href="javascript:closeMenuDialog()" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true">取消</a>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(function() {
+        initRole();
+        initPowerTree(-1);
+        initMenuTable(-1);
+    })
+
+    function initRole() {
+        alert(11)
+        $("#dg").datagrid({
+            url:"../queryRole",
+            columns:[
+                [{field:"checkbox",checkbox:true},
+                {field:"roleid",title:"id",width:80},
+                {field:"rolename",title:"角色名",width:80},
+                {field:"roleinfo",title:"描述",width:80},
+                {field:"tool",title:"操作",formatter:function(value,row,index){
+
+                        str = "&nbsp;<a href='javascript:openPower("+row.roleid+")'>赋权限</a>";
+                        return str;
+                    }}
+            ]
+            ],
+
+
+        })
+    }
+
+    function openPower(roleid) {
+        $("#roleid").val(roleid);
+        initPowerTree(roleid);
+        alert(roleid)
+    }
+
+
+    function initPowerTree(roleid){
+
+        $("#powerTree").tree({
+            url:"../initPowerTree?roleid="+roleid,
+            checkbox:true,
+            onContextMenu:function(e, node){
+                e.preventDefault();//阻止浏览器默认的右击菜单
+                // 查找节点
+                $('#powerTree').tree('select', node.target);//选中当前右击的节点
+                // 显示快捷菜单
+                $('#mm').menu('show', {
+                    left: e.pageX,
+                    top: e.pageY,
+
+                });
+            },
+
+            onAfterEdit:function(node){
+                //去后台修改节点
+                alert(node.text);
+                $.ajax({
+                    url:"../updatePowerById",
+                    type:"post",
+                    data:{text:node.text,id:node.id},
+                    success:function(){
+                        //重新加载树
+                        $('#powerTree').tree("reload");
+                    }
+                })
+            },
+            onDblClick:function(node){
+                initMenuTable(node.id);//初始化权限详细数据
+            }
+        })
+    }
+
+
+    function initMenuTable(powerid){
+        $("#powerId").val(powerid)
+        $("#menuTable").datagrid({
+            url:"../queryMenu",
+            columns:[
+                [{field:"checkbox",checkbox:true},
+                {field:"id",title:"id"},
+                {field:"name",title:"描述"},
+                {field:"url",title:"url"},
+                {field:"tool",title:"操作",formatter:function(value,row,index){
+                        var str = "<a href='javascript:openPowerMenu("+row.id+")'>修改</a>";
+                        return str;
+                    }}
+            ]
+            ],
+
+
+        })
+    }
+
+    function saveRolePower() {
+
+        var roleid=$("#roleid").val();
+        alert(roleid)
+        var arr1 = $("#powerTree").tree("getChecked","checked");//获取选中的
+        var arr2 = $("#powerTree").tree("getChecked","indeterminate");//获取不确定的
+        var ids = "";
+        for(var i=0;i<arr1.length;i++){
+            //alert(arr1[i].id);
+            ids+= ids==""?arr1[i].id:","+arr1[i].id;
+        }
+        for(var i=0;i<arr2.length;i++){
+            //alert(arr2[i].id);
+            ids+= ids==""?arr2[i].id:","+arr2[i].id;
+        }
+
+        alert(ids)
+        $.ajax({
+            url:"../saveRolePower",
+            type:"post",
+            data:{roleid:roleid,ids:ids},
+            success:function(){
+                //重新加载树
+                initPowerTree(roleid);//初始化权限树的数据
+                $.messager.alert("提示","修改成功!","info");
+            }
+        })
+
+    }
+
+
+
+    function remove(){
+        alert(11)
+        //获取当前选中的节点
+        var id = $('#powerTree').tree("getSelected").id;
+        //alert(id);
+        //删除
+        $.ajax({
+            url:"../deletePowerById",
+            type:"post",
+            data:{powerid:id},
+            success:function(){
+                //重新加载树
+                $('#powerTree').tree("reload");
+            }
+        })
+    }
+
+
+
+
+
+
+</script>
+</html>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jk.mapper.UserMapper" >
+
+
+      <select id="queryuser" resultType="com.jk.model.User">
+      select u.*,GROUP_CONCAT(r.rolename) roename from t_user u left join t_role_user ur on u.userid = ur.userid
+			left join t_role r on r.roleid = ur.roleid
+			 group by u.userid
+      </select>
+
+      <select id="queryTree" resultType="com.jk.model.MenuTree">
+
+              	select t.id,t.text,t.pId,t.url from tree t
+			left join t_role_tree rp on t.id = rp.treeid
+			left join t_role_user  ur on rp.roleid = ur.roleid
+			where t.pId=#{pid} and ur.userid =#{userid}
+			group by t.id
+
+      </select>
+
+      <insert id="addUser" parameterType="com.jk.model.User" useGeneratedKeys="true" keyProperty="userid">
+     insert into t_user (loginnumber,username,password, sex,birth,headimg)
+     values(#{loginnumber},#{username},#{password},#{sex},#{birth},#{headimg})
+ 	 </insert>
+    <delete id="delAll"  >
+        delete from t_user
+        where 1=1
+        <if test="ids !=null ">
+            and userid in
+            <foreach collection="ids" open="(" close=")" separator="," index="index" item="id">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+
+
+
+    <select id="queryPowerTreeByRoleid" parameterType="int" resultType="com.jk.model.MenuTree">
+		select n.id,n.text,n.url,n.pid from tree n left join t_role_tree rp on n.id = rp.treeid
+			where rp.roleid=#{roleid}
+	</select>
+
+
+
+    <select id="queryTreeByPid" parameterType="int" resultType="com.jk.model.MenuTree">
+		select t.id,t.text,t.pid,t.url from tree t where t.pId=#{pid}
+	</select>
+
+
+    <select id="queryMenu" resultType="com.jk.model.PowerModel" parameterType="int">
+		select * from t_power where powerid=#{powerid}
+	</select>
+
+    <update id="updatePowerById" parameterType="com.jk.model.MenuTree">
+		update tree set text=#{text} where id =#{id}
+	</update>
+
+
+    <!-- 根据角色id删除角色权限中间表的数据 -->
+    <delete id="deleteByRoleid" parameterType="int">
+		delete from t_role_tree  where roleid = #{roleid}
+	</delete>
+
+
+    <!-- 删除权限节点 -->
+    <delete id="deletePowerById" parameterType="int">
+		delete from tree where id = #{powerid}
+	</delete>
+
+    <insert id="addRolePower" >
+        insert into t_role_tree(roleid,treeid) values
+
+        <foreach collection="ids" item="treeid" separator=",">
+            (#{roleid},#{treeid})
+        </foreach>
+    </insert>
+
+
+    <insert id="addUserRole">
+        insert into t_role_user(userid,roleid) values
+        <foreach collection="arrId" item="roleid" separator=",">
+            (#{userid},#{roleid})
+        </foreach>
+    </insert>
+
+    <delete id="deleteUserRole" parameterType="int">
+	   	      delete from t_role_user where userid=#{userid}
+	           </delete>
+
+
+    <select id="queryUsername" parameterType="string"  resultType="com.jk.model.User">
+          select * from t_user u where u.loginnumber = #{loginnumber}
+            </select>
+
+    <select id="queryPowerByUserid" parameterType="int" resultType="string">
+	select m.url from t_power m
+				LEFT JOIN t_role_tree rp on m.powerid = rp.treeid
+				LEFT JOIN t_role_user ur on rp.roleid = ur.roleid
+				where ur.userid = #{userid} and m.url is not null and m.url !=''
+				GROUP BY m.id
+				UNION
+		select t.url from tree t
+				left join t_role_tree rp on t.id = rp.treeid
+				left join t_role_user  ur on rp.roleid = ur.roleid
+				where  ur.userid = #{userid} and t.url is not null and t.url!=''
+				group by t.id
+
+				</select>
+
+
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jk.mapper.CarModelMapper" >
+
+
+    <insert id="addCar" parameterType="com.jk.model.Car" useGeneratedKeys="true" keyProperty="carid">
+     insert into car (carName,carTime,carprice)
+     values(#{carName},#{cartime},#{carprice})
+ 	 </insert>
+
+
+    <delete id="delAll"  >
+        delete from car
+        where 1=1
+        <if test="id !=null ">
+            and carid in
+            <foreach collection="id" open="(" close=")" separator="," index="index" item="id">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+
+
+    <select id="queryById"  parameterType="int" resultType="com.jk.model.Car">
+
+		select * FROM  car c where c.carid=#{carid}
+
+			</select>
+
+
+
+
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jk.mapper.UserMapper" >
+
+    <insert id="addUser" parameterType="com.jk.model.User" useGeneratedKeys="true" keyProperty="userid">
+     insert into t_user (loginnumber,username,password, sex,birth,headimg)
+     values(#{loginnumber},#{username},#{password},#{sex},#{birth},#{headimg})
+ 	 </insert>
+
+    <delete id="delAll"  >
+        delete from t_user
+        where 1=1
+        <if test="ids !=null ">
+            and userid in
+            <foreach collection="ids" open="(" close=")" separator="," index="index" item="id">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+
+    <select id="queryuserByid"   resultType="com.jk.model.User">
+    SELECT * from t_user u
+    where u.userid=27
+    GROUP BY u.userid
+    </select>
+
+    <update id="updateuser" parameterType="com.jk.model.User">
+			UPDATE  t_user  set username=#{username},password=#{password},loginnumber=#{loginnumber},
+			sex=#{sex},birth=#{birth},headimg=#{headimg} where userid =#{userid}
+
+		   </update>
+
+</mapper>

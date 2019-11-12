@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+
+    <!-- jqeuy默认的css样式 -->
+    <link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css">
+
+    <link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css">
+
+    <!-- 这是jquery的核心包  -->
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <!-- 这是easyui的核心包  -->
+    <script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/locale/easyui-lang-zh_CN.js"></script>
+
+</head>
+<body>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',height:100">
+
+    </div>
+    <div data-options="region:'west',width:200,title:'导航菜单'">
+        <!-- 定义树 -->
+        <ul id="mytree"></ul>
+    </div>
+    <div data-options="region:'center'">
+        <!-- 定义选项卡 -->
+        <div class="easyui-tabs" id="mytabs" data-options="fit:true">
+
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(function(){
+        initTree();//初始化同步树
+    })
+
+    //初始化同步
+    function initTree(){
+
+        $("#mytree").tree({
+            url:"../getsync",
+
+            onClick:function(node){
+                if(node.url!=null && node.url!=""){
+                    //判断选项卡是否存在
+                    var flag = $("#mytabs").tabs("exists",node.text);
+                    if(flag){//存在：选中
+                        $("#mytabs").tabs("select",node.text);
+                    }else{//不存在：新增
+                        $("#mytabs").tabs("add",{
+                            title:node.text,
+                            closable:true,
+                            content:createPage(node.url),
+                            tools:[{
+                                iconCls:'icon-mini-refresh',
+                                handler:function(){
+                                    //更新选项卡
+                                    $('#mytabs').tabs('update', {
+                                        tab: $('#mytabs').tabs('getSelected'),  // 获取选择的面板
+                                        options: {
+                                            content:createPage(node.url)
+                                        }
+                                    });
+
+                                }
+                            }]
+                        });
+                    }
+                }
+            }
+        })
+    }
+
+    //引入页面
+    function createPage(url){
+        return "<iframe style='width:100%;height:100%' frameborder='0' scrolling='auto' src='.."+url+"'></iframe>";
+    }
+
+
+</script>
+</html>

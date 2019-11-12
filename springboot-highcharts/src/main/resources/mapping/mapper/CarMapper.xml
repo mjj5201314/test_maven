@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jk.mapper.CarModelMapper" >
+
+    <select id="queryCar" resultType="java.util.LinkedHashMap">
+ select COUNT(*) count,DATE_FORMAT(carTime,'%Y-%m') time  from car WHERE DATE_FORMAT(carTime,"%Y") = 2019 GROUP BY DATE_FORMAT(carTime,'%Y-%m')
+  </select>
+
+    <select id="queryCarAll" resultType="java.util.LinkedHashMap">
+       select COUNT(*) count,DATE_FORMAT(carTime,'%Y年%u周') time  from car
+where DATE_FORMAT(carTime,'%Y')=2019
+  GROUP BY DATE_FORMAT(carTime,'%Y年%u周')
+  </select>
+
+
+
+</mapper>
